@@ -1,0 +1,3 @@
+/Users/semensavcenko/CLionProjects/1LabaParallelprogramming/laba4_mpi/cmake-build-debug/CMakeFiles/laba4_mpi.dir
+/Users/semensavcenko/CLionProjects/1LabaParallelprogramming/laba4_mpi/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/semensavcenko/CLionProjects/1LabaParallelprogramming/laba4_mpi/cmake-build-debug/CMakeFiles/rebuild_cache.dir
