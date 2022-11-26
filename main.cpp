@@ -1,3 +1,4 @@
+
 #include "/opt/homebrew/Cellar/open-mpi/4.1.4_2/include/mpi.h"
 #include <iostream>
 #include <chrono>
@@ -9,9 +10,7 @@ double y(double x)
     return 10-x;
 }
 
-double trapezoidalIntegral(double a, double b, int n, int start, int finish) {
-    const double width = (b-a)/n;
-
+double trapezoidalIntegral(double a, double b, int start, int finish, double width) {
     double trapezoidal_integral = 0;
     for(int step = start; step < finish; step++) {
         const double x1 = a + step*width;
@@ -28,7 +27,7 @@ int main(int argc, char **argv) {
     MPI_Status status;
     double a = 1, b = 5;
     int n = 1000000000;
-    int interval[2];
+    double interval[3];
     unsigned int start_time =  clock(); // начальное время
 
     MPI_Init(&argc, &argv);
@@ -39,6 +38,9 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &thread_size);
     double resulti = 0;
     double result = 0;
+    if (thread_size == 1){
+        resulti = trapezoidalIntegral(a, b, 0, n, (b-a)/n);
+    }
     if (my_id == 0){
         for (int i = 1; i < thread_size; i++){
             int start = (i - 1) * (n / (thread_size - 1));
@@ -46,12 +48,13 @@ int main(int argc, char **argv) {
             //запихиваем начальную и конечную точки в массив
             interval[0] = start;
             interval[1] = finish;
+            interval[2] = (b - a) / n;
 
-            MPI_Send(&interval, 2, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(&interval, 3, MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
         }
     } else{
-        MPI_Recv(&interval, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        resulti += trapezoidalIntegral(a, b, n, interval[0], interval[1]);
+        MPI_Recv(&interval, 3, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        resulti = trapezoidalIntegral(a, b, interval[0], interval[1], interval[2]);
     }
 
     MPI_Reduce(&resulti, &result, thread_size, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
